@@ -18,7 +18,7 @@ export default {
   props: {},
   data() {
     return {
-      svgWidth: 0,
+      svgWidth: 500,
       svgHeight: 500,
       svgPadding: {
         top: 25,

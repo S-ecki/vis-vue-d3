@@ -3,15 +3,15 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-md-12">
-          <YearSlider/>
+          <YearSlider />
         </div>
       </div>
       <div class="row">
         <div class="col-md-5">
-          <Scatterplot/>
+          <Scatterplot />
         </div>
         <div class="col-md-7">
-          <ChoroplethMap/>
+          <ChoroplethMap />
         </div>
       </div>
     </div>
@@ -19,20 +19,21 @@
 </template>
 
 <script>
-import ChoroplethMap from './components/ChoroplethMap.vue';
-import Scatterplot from './components/Scatterplot.vue';
-import YearSlider from './components/YearSlider.vue';
+import ChoroplethMap from "./components/ChoroplethMap.vue";
+import Scatterplot from "./components/Scatterplot.vue";
+import YearSlider from "./components/YearSlider.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    ChoroplethMap, YearSlider,
-    Scatterplot
+    ChoroplethMap,
+    YearSlider,
+    Scatterplot,
   },
   mounted() {
-    this.$store.dispatch('loadData');
+    this.$store.dispatch("loadData");
   },
-}
+};
 </script>
 
 <style>

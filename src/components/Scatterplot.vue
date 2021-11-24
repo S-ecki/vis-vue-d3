@@ -1,6 +1,6 @@
 <template>
   <div class="vis-component" ref="chart">
-    <svg class="main-svg" :width="svgWidth" :height="svgHeight">
+    <svg class="main-svg" :width="svgWidth" :height="svgHeight" ref="mainSVG">
       <g class="chart-group" ref="chartGroup">
         <g class="axis axis-x" ref="axisX"></g>
         <g class="axis axis-y" ref="axisY"></g>
@@ -34,6 +34,7 @@ export default {
   methods: {
     drawChart() {
       if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
+      d3.selectAll("#scatterLabel").remove(); // TODO:removing of everything in own function
       d3.select(this.$refs.chartGroup).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
@@ -60,6 +61,7 @@ export default {
 
       d3.select(this.$refs.axisY) // TODO: fix this
         .append("text")
+        .attr("id", "scatterLabel")
         .attr("y", this.svgHeight - this.svgPadding.top - 10)
         .attr("fill", "black")
         .attr("text-anchor", "start")
@@ -75,7 +77,7 @@ export default {
       d3.select(this.$refs.axisY)
         .call(yAxis)
         .append("text")
-        .attr("id", "yLabel")
+        .attr("id", "scatterLabel")
         .attr("transform", "rotate(-90)")
         .attr("y", -this.svgPadding.left + 15)
         .attr("text-anchor", "end")
