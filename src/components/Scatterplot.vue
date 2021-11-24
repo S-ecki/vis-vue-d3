@@ -35,6 +35,9 @@ export default {
     drawChart() {
       if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
       d3.selectAll("#scatterLabel").remove(); // TODO:removing of everything in own function
+
+      this.initTooltip();
+
       d3.select(this.$refs.chartGroup).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
@@ -95,7 +98,9 @@ export default {
         .attr("fill", "black")
         .attr("cx", (d) => this.xScale(d.x))
         .attr("cy", (d) => this.yScale(d.y))
-        .attr("r", 4);
+        .attr("r", 4)
+        .on("mouseover", this.showTooltip)
+        .on("mouseout", this.hideTooltip);
     },
 
     getScatterData() {
@@ -113,6 +118,25 @@ export default {
       //   });
       // }
       // return returnArray;
+    },
+
+    initTooltip() {
+      d3.select("#scatterTooltip").remove();
+      // the idea of how to use tooltips was inspired by this website, but heavily changed to my own needs
+      // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+      d3.select("body")
+        .append("div")
+        .attr("id", "scatterTooltip");
+    },
+    showTooltip(event, data) {
+      d3.select("#scatterTooltip")
+        .style("left", `${event.pageX - 50}px`)
+        .style("top", `${event.pageY + 50}px`)
+        .style("opacity", 1)
+        .text(data.state);
+    },
+    hideTooltip() {
+      d3.select(`#scatterTooltip`).style("opacity", 0);
     },
   },
   computed: {
@@ -177,4 +201,17 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+#scatterTooltip {
+  position: absolute;
+  text-align: center;
+  width: 110px;
+  height: 45px;
+  background: lightgrey;
+  border-radius: 5px;
+  font-size: 14px;
+  opacity: 0;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+</style>

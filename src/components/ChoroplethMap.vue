@@ -70,7 +70,7 @@ export default {
     showTooltip(event, data) {
       d3.select("#mapTooltip")
         .style("left", `${event.pageX - 50}px`)
-        .style("top", `${event.pageY + 25}px`)
+        .style("top", `${event.pageY + 50}px`)
         .style("opacity", 1)
         .text(data.properties.name);
     },
