@@ -15,9 +15,15 @@ const store = new Vuex.Store({
     changeSelectedYear(state, year) {
       state.selectedYear = year;
     },
-    changeSelectedState(state, val) {
-      state.selectedStates.push(val);
+    changeStateSelection(state, stateName) {
+      state.selectedStates.includes(stateName) ?
+        // remove element if in array
+        state.selectedStates.splice(state.selectedStates.indexOf(stateName), 1) :
+        // add element if not in array
+        state.selectedStates.push(stateName);
+
     }
+
   },
   getters: {
     selectedYear: (state) => state.selectedYear,

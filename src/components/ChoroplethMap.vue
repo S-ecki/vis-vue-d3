@@ -1,5 +1,6 @@
 <template>
   <div class="vis-component" ref="chart">
+    <div>{{ selectedStates }}</div>
     <svg class="main-svg" :width="svgWidth" :height="svgHeight">
       <g class="choropleth-map" ref="map"></g>
     </svg>
@@ -26,9 +27,6 @@ export default {
     };
   },
   mounted() {
-    // Use the following map geoJSON object ("mapStatesUSA") for your projection
-    console.log(mapStatesUSA);
-
     this.drawVis();
   },
   methods: {
@@ -52,7 +50,10 @@ export default {
         .join("path")
         .attr("d", path)
         .attr("fill", "white")
-        .attr("stroke", "black");
+        .attr("stroke", "black")
+        .on("click", (_, data) => {
+          this.$store.commit("changeStateSelection", data.properties.name);
+        });
     },
 
     getGeopath() {
