@@ -1,6 +1,5 @@
 <template>
-  <div class="vis-component" ref="chart">
-    <div>{{ selectedStates }}</div>
+  <div class="vis-component" ref="vis">
     <svg class="main-svg" :width="svgWidth" :height="svgHeight">
       <g class="choropleth-map" ref="map"></g>
     </svg>
@@ -31,8 +30,10 @@ export default {
   },
   methods: {
     drawVis() {
-      if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
+      if (this.$refs.vis) this.svgWidth = this.$refs.vis.clientWidth;
       // d3.selectAll("#scatterLabel").remove();
+      this.initTooltip();
+
       d3.select(this.$refs.map).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
@@ -53,7 +54,28 @@ export default {
         .attr("stroke", "black")
         .on("click", (_, data) => {
           this.$store.commit("changeStateSelection", data.properties.name);
-        });
+        })
+        .on("mouseover", this.showTooltip)
+        .on("mouseout", this.hideTooltip);
+    },
+
+    initTooltip() {
+      d3.select("#mapTooltip").remove();
+      // the idea of how to use tooltips was inspired by this website, but heavily changed to my own needs
+      // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+      d3.select("body")
+        .append("div")
+        .attr("id", "mapTooltip");
+    },
+    showTooltip(event, data) {
+      d3.select("#mapTooltip")
+        .style("left", `${event.pageX - 50}px`)
+        .style("top", `${event.pageY + 25}px`)
+        .style("opacity", 1)
+        .text(data.properties.name);
+    },
+    hideTooltip() {
+      d3.select(`#mapTooltip`).style("opacity", 0);
     },
 
     getGeopath() {
@@ -91,4 +113,15 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+#mapTooltip {
+  position: absolute;
+  text-align: center;
+  width: 110px;
+  height: 30px;
+  background: lightgrey;
+  border-radius: 5px;
+  font-size: 14px;
+  opacity: 0;
+}
+</style>
