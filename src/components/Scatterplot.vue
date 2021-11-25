@@ -4,7 +4,9 @@
       <g class="chart-group" ref="chartGroup">
         <g class="axis axis-x" ref="axisX"></g>
         <g class="axis axis-y" ref="axisY"></g>
-        <g class="scatter-group" ref="scatterGroup"></g>
+        <g class="scatter-group" ref="scatterGroup">
+          <g class="rect-group" ref="rectGroup"></g>
+        </g>
       </g>
     </svg>
   </div>
@@ -12,6 +14,7 @@
 
 <script>
 import * as d3 from "d3";
+import bivariate_colors from "../store/bivariate_colors.js";
 
 export default {
   name: "Scatterplot",
@@ -44,6 +47,7 @@ export default {
       );
       this.drawXAxis();
       this.drawYAxis();
+      this.drawBackground();
       this.drawScatter();
     },
 
@@ -88,6 +92,25 @@ export default {
         .text("Average Yearly Personal Income (in $)");
     },
 
+    // draws 9 same size rects with colors from "bivariate_colors" behind scatter
+    drawBackground() {
+      let colorInd = 0;
+      for (let i = 0; i < 3; ++i) {
+        for (let j = 0; j < 3; ++j) {
+          this.appendRect(i, j, colorInd++);
+        }
+      }
+    },
+    appendRect(xInd, yInd, colorInd) {
+      d3.select(this.$refs.rectGroup)
+        .append("rect")
+        .attr("x", xInd * this.rectWidth)
+        .attr("y", yInd * this.rectHeight)
+        .attr("width", this.rectWidth)
+        .attr("height", this.rectHeight)
+        .attr("style", `fill:${bivariate_colors.colors[colorInd]};`);
+    },
+
     drawScatter() {
       d3.select(this.$refs.scatterGroup)
         .selectAll(".scatter")
@@ -109,15 +132,6 @@ export default {
         x: this.$store.getters.educationRates[i].value,
         y: pInc.value,
       }));
-      // let returnArray = [];
-      // for (let i = 0; i < this.$store.getters.personalIncome.length; ++i) {
-      //   returnArray.push({
-      //     state: this.$store.getters.educationRates[i].state,
-      //     x: this.$store.getters.educationRates[i].value,
-      //     y: this.$store.getters.personalIncome[i].value,
-      //   });
-      // }
-      // return returnArray;
     },
 
     initTooltip() {
@@ -182,6 +196,15 @@ export default {
           this.svgHeight - this.svgPadding.top - this.svgPadding.bottom,
           0,
         ]);
+    },
+
+    rectWidth() {
+      return (this.svgWidth - this.svgPadding.right - this.svgPadding.left) / 3;
+    },
+    rectHeight() {
+      return (
+        (this.svgHeight - this.svgPadding.top - this.svgPadding.bottom) / 3
+      );
     },
   },
   watch: {

@@ -29,6 +29,7 @@ export default {
     this.drawVis();
   },
   methods: {
+    // TODO: put rect behind and add onClick to remove highlights
     drawVis() {
       if (this.$refs.vis) this.svgWidth = this.$refs.vis.clientWidth;
       // d3.selectAll("#scatterLabel").remove();
@@ -109,6 +110,7 @@ export default {
       },
     },
   },
+  // TODO add watchers
   watch: {},
 };
 </script>
