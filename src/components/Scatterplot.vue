@@ -102,13 +102,14 @@ export default {
       }
     },
     appendRect(xInd, yInd, colorInd) {
+      const color = bivariate_colors.colors[colorInd];
       d3.select(this.$refs.rectGroup)
         .append("rect")
         .attr("x", xInd * this.rectWidth)
         .attr("y", yInd * this.rectHeight)
         .attr("width", this.rectWidth)
         .attr("height", this.rectHeight)
-        .attr("style", `fill:${bivariate_colors.colors[colorInd]};`);
+        .attr("style", `fill:${color};`);
     },
 
     drawScatter() {
@@ -118,10 +119,15 @@ export default {
         .join("circle")
         .attr("class", "scatter")
         .attr("stroke", "white")
-        .attr("fill", "black")
+        .attr("fill", (d) =>
+          this.selectedStates.includes(d.state) ? "red" : "black"
+        )
         .attr("cx", (d) => this.xScale(d.x))
         .attr("cy", (d) => this.yScale(d.y))
         .attr("r", 4)
+        .on("click", (_, d) => {
+          this.$store.commit("changeStateSelection", d.state);
+        })
         .on("mouseover", this.showTooltip)
         .on("mouseout", this.hideTooltip);
     },
@@ -162,6 +168,11 @@ export default {
     personalIncome: {
       get() {
         return this.$store.getters.personalIncome;
+      },
+    },
+    selectedStates: {
+      get() {
+        return this.$store.getters.selectedStates;
       },
     },
 
@@ -215,6 +226,12 @@ export default {
       deep: true,
     },
     personalIncome: {
+      handler() {
+        this.drawChart();
+      },
+      deep: true,
+    },
+    selectedStates: {
       handler() {
         this.drawChart();
       },

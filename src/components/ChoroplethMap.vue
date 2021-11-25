@@ -51,10 +51,12 @@ export default {
         .data(mapStatesUSA.features)
         .join("path")
         .attr("d", path)
-        .attr("fill", "white")
+        .attr("fill", (d) =>
+          this.selectedStates.includes(d.properties.name) ? "red" : "white"
+        )
         .attr("stroke", "black")
-        .on("click", (_, data) => {
-          this.$store.commit("changeStateSelection", data.properties.name);
+        .on("click", (_, d) => {
+          this.$store.commit("changeStateSelection", d.properties.name);
         })
         .on("mouseover", this.showTooltip)
         .on("mouseout", this.hideTooltip);
@@ -111,7 +113,14 @@ export default {
     },
   },
   // TODO add watchers
-  watch: {},
+  watch: {
+    selectedStates: {
+      handler() {
+        this.drawVis();
+      },
+      deep: true,
+    },
+  },
 };
 </script>
 
