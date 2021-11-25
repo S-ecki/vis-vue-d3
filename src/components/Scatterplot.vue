@@ -14,7 +14,7 @@
 
 <script>
 import * as d3 from "d3";
-import bivariate_colors from "../store/bivariate_colors.js";
+import bivariate_colors from "../helpers/bivariate_colors.js";
 
 export default {
   name: "Scatterplot",
@@ -33,6 +33,7 @@ export default {
   },
   mounted() {
     this.drawChart();
+    this.refillColorMap();
   },
   methods: {
     drawChart() {
@@ -94,15 +95,14 @@ export default {
 
     // draws 9 same size rects with colors from "bivariate_colors" behind scatter
     drawBackground() {
-      let colorInd = 0;
       for (let i = 0; i < 3; ++i) {
         for (let j = 0; j < 3; ++j) {
-          this.appendRect(i, j, colorInd++);
+          this.appendRect(i, j);
         }
       }
     },
-    appendRect(xInd, yInd, colorInd) {
-      const color = bivariate_colors.colors[colorInd];
+    appendRect(xInd, yInd) {
+      const color = bivariate_colors[xInd][yInd];
       d3.select(this.$refs.rectGroup)
         .append("rect")
         .attr("x", xInd * this.rectWidth)
@@ -151,12 +151,52 @@ export default {
     showTooltip(event, data) {
       d3.select("#scatterTooltip")
         .style("left", `${event.pageX - 50}px`)
-        .style("top", `${event.pageY + 50}px`)
+        .style("top", `${event.pageY + 30}px`)
         .style("opacity", 1)
+        .style("display", "block")
         .text(data.state);
     },
     hideTooltip() {
-      d3.select(`#scatterTooltip`).style("opacity", 0);
+      d3.select(`#scatterTooltip`)
+        .style("opacity", 0)
+        .style("display", "none");
+    },
+
+    refillColorMap() {
+      let colorMap = new Map();
+      const data = this.getScatterData();
+
+      for (let datapoint of data) {
+        const color = this.getColorForDatapoint(datapoint.x, datapoint.y);
+        colorMap.set(datapoint.state, color);
+      }
+
+      this.$store.commit("setColorMap", colorMap);
+    },
+    getColorForDatapoint(eduRate, persIncome) {
+      const x = this.getXColorIndex(eduRate);
+      const y = this.getYColorIndex(persIncome);
+
+      const color = bivariate_colors[x][2 - y];
+      return color;
+    },
+
+    getXColorIndex(eduRate) {
+      const scale = d3
+        .scaleLinear()
+        .domain([this.educationalRatesMin, this.educationalRatesMax]);
+
+      const xColorIndex = Math.floor(scale(eduRate) * 3);
+      return xColorIndex == 3 ? xColorIndex - 1 : xColorIndex;
+    },
+
+    getYColorIndex(persIncome) {
+      const scale = d3
+        .scaleLinear()
+        .domain([this.personalIncomeMin, this.personalIncomeMax]);
+
+      const yColorIndex = Math.floor(scale(persIncome) * 3);
+      return yColorIndex == 3 ? yColorIndex - 1 : yColorIndex;
     },
   },
   computed: {
@@ -222,12 +262,14 @@ export default {
     educationRates: {
       handler() {
         this.drawChart();
+        this.refillColorMap();
       },
       deep: true,
     },
     personalIncome: {
       handler() {
         this.drawChart();
+        this.refillColorMap();
       },
       deep: true,
     },
@@ -251,7 +293,6 @@ export default {
   border-radius: 5px;
   font-size: 14px;
   opacity: 0;
-  -ms-transform: translateY(-50%);
-  transform: translateY(-50%);
+  display: none;
 }
 </style>

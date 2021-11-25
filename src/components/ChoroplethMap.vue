@@ -35,16 +35,22 @@ export default {
       // d3.selectAll("#scatterLabel").remove();
       this.initTooltip();
 
+      // TODO: unselect by clicking next to map
+      // d3.select(this.$refs.test).on("click", () => {
+      //   this.$store.commit("clearStateSelection");
+      // });
+
       d3.select(this.$refs.map).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
       );
-      // TODO add map
       this.drawMap();
     },
 
     drawMap() {
       const path = this.getGeopath();
+
+      const colorMap = this.$store.state.colorMap;
 
       d3.select(this.$refs.map)
         .selectAll("path")
@@ -52,7 +58,9 @@ export default {
         .join("path")
         .attr("d", path)
         .attr("fill", (d) =>
-          this.selectedStates.includes(d.properties.name) ? "red" : "white"
+          this.selectedStates.includes(d.properties.name)
+            ? colorMap.get(d.properties.name)
+            : "white"
         )
         .attr("stroke", "black")
         .on("click", (_, d) => {
@@ -115,6 +123,18 @@ export default {
   // TODO add watchers
   watch: {
     selectedStates: {
+      handler() {
+        this.drawVis();
+      },
+      deep: true,
+    },
+    personalIncome: {
+      handler() {
+        this.drawVis();
+      },
+      deep: true,
+    },
+    educationRates: {
       handler() {
         this.drawVis();
       },

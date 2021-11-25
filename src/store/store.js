@@ -10,6 +10,9 @@ const store = new Vuex.Store({
     selectedStates: [],
     educationRates: [],
     personalIncome: [],
+
+    colorMap: new Map(),
+
   },
   mutations: {
     changeSelectedYear(state, year) {
@@ -21,9 +24,14 @@ const store = new Vuex.Store({
         state.selectedStates.splice(state.selectedStates.indexOf(stateName), 1) :
         // add element if not in array
         state.selectedStates.push(stateName);
+    },
+    clearStateSelection(state) {
+      state.selectedStates = []
+    },
 
+    setColorMap(state, colorMap) {
+      state.colorMap = colorMap;
     }
-
   },
   getters: {
     selectedYear: (state) => state.selectedYear,
@@ -52,6 +60,7 @@ const store = new Vuex.Store({
       }
       return result;
     },
+    colorMap: (state) => state.colorMap,
   },
   actions: {
     loadData({ state }) {
