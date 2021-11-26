@@ -25,26 +25,31 @@ export default {
       },
     };
   },
+
   mounted() {
     this.drawVis();
+    this.initTooltip();
   },
+
   methods: {
     // TODO: put rect behind and add onClick to remove highlights
     drawVis() {
       if (this.$refs.vis) this.svgWidth = this.$refs.vis.clientWidth;
-      // d3.selectAll("#scatterLabel").remove();
-      this.initTooltip();
 
       // TODO: unselect by clicking next to map
       // d3.select(this.$refs.test).on("click", () => {
       //   this.$store.commit("clearStateSelection");
       // });
 
+      this.transformSVG();
+      this.drawMap();
+    },
+
+    transformSVG() {
       d3.select(this.$refs.map).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
       );
-      this.drawMap();
     },
 
     drawMap() {
@@ -69,26 +74,6 @@ export default {
         .on("mouseover", this.showTooltip)
         .on("mouseout", this.hideTooltip);
     },
-
-    initTooltip() {
-      d3.select("#mapTooltip").remove();
-      // the idea of how to use tooltips was inspired by this website, but heavily changed to my own needs
-      // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
-      d3.select("body")
-        .append("div")
-        .attr("id", "mapTooltip");
-    },
-    showTooltip(event, data) {
-      d3.select("#mapTooltip")
-        .style("left", `${event.pageX - 50}px`)
-        .style("top", `${event.pageY + 50}px`)
-        .style("opacity", 1)
-        .text(data.properties.name);
-    },
-    hideTooltip() {
-      d3.select(`#mapTooltip`).style("opacity", 0);
-    },
-
     getGeopath() {
       return d3.geoPath().projection(this.getProjection());
     },
@@ -102,7 +87,30 @@ export default {
           .translate([this.svgWidth / 2, this.svgHeight / 2])
       );
     },
+
+    initTooltip() {
+      // the idea of how to use tooltips was inspired by this website, but heavily changed to my own needs
+      // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
+      d3.select("body")
+        .append("div")
+        .attr("id", "mapTooltip");
+    },
+    showTooltip(event, data) {
+      // additional styling by css
+      d3.select("#mapTooltip")
+        .style("left", `${event.pageX - 50}px`)
+        .style("top", `${event.pageY + 50}px`)
+        .style("opacity", 1)
+        .style("display", "block")
+        .text(data.properties.name);
+    },
+    hideTooltip() {
+      d3.select(`#mapTooltip`)
+        .style("opacity", 0)
+        .style("display", "none");
+    },
   },
+
   computed: {
     educationRates: {
       get() {
@@ -120,7 +128,7 @@ export default {
       },
     },
   },
-  // TODO add watchers
+
   watch: {
     selectedStates: {
       handler() {

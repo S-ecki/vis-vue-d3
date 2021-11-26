@@ -10,13 +10,17 @@ const store = new Vuex.Store({
     selectedStates: [],
     educationRates: [],
     personalIncome: [],
-
+    // key: stateName, value: color to fill choropleth
     colorMap: new Map(),
 
   },
+
   mutations: {
     changeSelectedYear(state, year) {
       state.selectedYear = year;
+    },
+    changeSelectedStates(state, states) {
+      state.selectedStates = states;
     },
     changeStateSelection(state, stateName) {
       state.selectedStates.includes(stateName) ?
@@ -28,11 +32,11 @@ const store = new Vuex.Store({
     clearStateSelection(state) {
       state.selectedStates = []
     },
-
     setColorMap(state, colorMap) {
       state.colorMap = colorMap;
     }
   },
+
   getters: {
     selectedYear: (state) => state.selectedYear,
     selectedStates: (state) => state.selectedStates,
@@ -62,6 +66,7 @@ const store = new Vuex.Store({
     },
     colorMap: (state) => state.colorMap,
   },
+
   actions: {
     loadData({ state }) {
       d3.csv('./usa_ba-degree-or-higher_2006-2019.csv').then((data) => {
@@ -72,7 +77,7 @@ const store = new Vuex.Store({
         state.personalIncome = data;
       })
     },
-  }
+  },
 })
 
 export default store;

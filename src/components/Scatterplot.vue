@@ -2,12 +2,12 @@
   <div class="vis-component" ref="chart">
     <svg class="main-svg" :width="svgWidth" :height="svgHeight" ref="mainSVG">
       <g class="chart-group" ref="chartGroup">
+        <g class="rect-group" ref="rectGroup"></g>
         <g class="axis axis-x" ref="axisX"></g>
         <g class="axis axis-y" ref="axisY"></g>
-        <g class="scatter-group" ref="scatterGroup">
-          <g class="rect-group" ref="rectGroup"></g>
-        </g>
       </g>
+      <g class="brush" ref="brush"></g>
+      <g class="scatter-group" ref="scatterGroup"></g>
     </svg>
   </div>
 </template>
@@ -31,24 +31,41 @@ export default {
       },
     };
   },
+
   mounted() {
-    this.drawChart();
+    this.drawVis();
     this.refillColorMap();
+    this.initTooltip();
   },
+
   methods: {
-    drawChart() {
+    drawVis() {
       if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
-      d3.selectAll("#scatterLabel").remove(); // TODO:removing of everything in own function
+      this.drawChart();
+      this.transformSVGs();
+    },
 
-      this.initTooltip();
-
+    transformSVGs() {
       d3.select(this.$refs.chartGroup).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
       );
+      d3.select(this.$refs.scatterGroup).attr(
+        "transform",
+        `translate(${this.svgPadding.left},${this.svgPadding.top})`
+      );
+      d3.select(this.$refs.brush).attr(
+        "transform",
+        `translate(${this.svgPadding.left},${this.svgPadding.top})`
+      );
+    },
+
+    drawChart() {
+      d3.selectAll("#scatterLabel").remove();
       this.drawXAxis();
       this.drawYAxis();
       this.drawBackground();
+      this.addBrush();
       this.drawScatter();
     },
 
@@ -67,6 +84,9 @@ export default {
         )
         .call(xAxis);
 
+      this.drawXLabel();
+    },
+    drawXLabel() {
       d3.select(this.$refs.axisY) // TODO: fix this
         .append("text")
         .attr("id", "scatterLabel")
@@ -82,8 +102,12 @@ export default {
         .ticks(6)
         .tickFormat((data) => `${data}`);
 
+      d3.select(this.$refs.axisY).call(yAxis);
+
+      this.drawYLabel();
+    },
+    drawYLabel() {
       d3.select(this.$refs.axisY)
-        .call(yAxis)
         .append("text")
         .attr("id", "scatterLabel")
         .attr("transform", "rotate(-90)")
@@ -103,6 +127,7 @@ export default {
     },
     appendRect(xInd, yInd) {
       const color = bivariate_colors[xInd][yInd];
+
       d3.select(this.$refs.rectGroup)
         .append("rect")
         .attr("x", xInd * this.rectWidth)
@@ -162,6 +187,9 @@ export default {
         .style("display", "none");
     },
 
+    // this fills up the Map in the store, which saves the colors
+    // each state should be highlighted on the choropleth map when selected
+    // gets called every time eduRate/ persIncome change
     refillColorMap() {
       let colorMap = new Map();
       const data = this.getScatterData();
@@ -173,14 +201,16 @@ export default {
 
       this.$store.commit("setColorMap", colorMap);
     },
+    // returns hex code that the state should be highlighted with
     getColorForDatapoint(eduRate, persIncome) {
       const x = this.getXColorIndex(eduRate);
       const y = this.getYColorIndex(persIncome);
 
-      const color = bivariate_colors[x][2 - y];
+      const color = bivariate_colors[x][y];
       return color;
     },
-
+    // determines the x-"index" of the field the datapoint is on
+    // the left column is be 0, middle 1 and right 2
     getXColorIndex(eduRate) {
       const scale = d3
         .scaleLinear()
@@ -189,16 +219,84 @@ export default {
       const xColorIndex = Math.floor(scale(eduRate) * 3);
       return xColorIndex == 3 ? xColorIndex - 1 : xColorIndex;
     },
-
+    // determines the y-"index" of the field the datapoint is on
+    // the left row is be 0, middle 1 and right 2
     getYColorIndex(persIncome) {
       const scale = d3
         .scaleLinear()
         .domain([this.personalIncomeMin, this.personalIncomeMax]);
 
-      const yColorIndex = Math.floor(scale(persIncome) * 3);
-      return yColorIndex == 3 ? yColorIndex - 1 : yColorIndex;
+      const yColorIndex = 2 - Math.floor(scale(persIncome) * 3);
+      return yColorIndex == -1 ? 0 : yColorIndex;
+    },
+
+    // !
+
+    onStartBrush(event) {
+      const selection = event.selection;
+
+      // if (!selection) {
+      //   this.$store.commit("clearStateSelection");
+      //   return;
+      // }
+      // console.log(" x: s" + selection[0][0] + " e" + selection[1][0]);
+      // console.log(" y: s" + selection[1][1] + " e" + selection[0][1]);
+
+      // gets the actual values of the corners of the brush
+      const eduStart = this.xScale.invert(selection[0][0]);
+      const eduEnd = this.xScale.invert(selection[1][0]);
+      const incStart = this.yScale.invert(selection[1][1]);
+      const incEnd = this.yScale.invert(selection[0][1]);
+
+      console.log("start " + eduStart, "end " + eduEnd);
+      console.log("start " + incStart, "end " + incEnd);
+
+      const selectedStates = this.getScatterData()
+        .filter((datapoint) => {
+          // console.log(datapoint);
+          const edu = datapoint.x;
+          const inc = datapoint.y;
+
+          return (
+            edu >= eduStart && edu <= eduEnd && inc >= incStart && inc <= incEnd
+          );
+        })
+        .map((datapoint) => datapoint.state);
+      this.$store.commit("changeSelectedStates", selectedStates);
+    },
+
+    // !
+
+    addBrush() {
+      // Brush control
+      const brush = d3
+        .brush()
+        .extent([
+          [0, 0],
+          [
+            this.svgWidth - this.svgPadding.left - this.svgPadding.right,
+            this.svgHeight - this.svgPadding.top - this.svgPadding.bottom,
+          ],
+        ])
+        .on("start brush", this.onStartBrush);
+
+      d3.select("#brush").remove();
+
+      d3.select(this.$refs.brush)
+        .append("g")
+        .attr("id", "brush")
+        // .attr(
+        //   "transform",
+        //   `translate(${this.svgPadding.left}, ${this.svgPadding.top})`
+        // )
+        .attr("class", "brush")
+        .call(brush);
+
+      d3.select("scatter-group").raise();
+      // TODO: take rect group out of scatter group
     },
   },
+
   computed: {
     educationRates: {
       get() {
@@ -258,24 +356,25 @@ export default {
       );
     },
   },
+
   watch: {
     educationRates: {
       handler() {
-        this.drawChart();
+        this.drawVis();
         this.refillColorMap();
       },
       deep: true,
     },
     personalIncome: {
       handler() {
-        this.drawChart();
+        this.drawVis();
         this.refillColorMap();
       },
       deep: true,
     },
     selectedStates: {
       handler() {
-        this.drawChart();
+        this.drawVis();
       },
       deep: true,
     },
