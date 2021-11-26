@@ -1,6 +1,5 @@
 <template>
   <div>
-    <label for="range-year">Year Selection</label>
     <b-form-input
       id="range-year"
       v-model="selectedYear"
@@ -8,7 +7,9 @@
       min="2006"
       max="2019"
     ></b-form-input>
-    <div class="mt-2">Selected Year: {{ selectedYear }}</div>
+    <div class="mt-2 font-weight-bold h5">
+      Data from the year: {{ selectedYear }}
+    </div>
   </div>
 </template>
 

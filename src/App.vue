@@ -1,12 +1,16 @@
 <template>
   <div id="app">
+    <h1>
+      Relation between the Educational Attainment Rate and the Average yearly
+      Income in the USA
+    </h1>
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-md-12">
+      <div class="row justify-content-center p-5">
+        <div class="col-md-8">
           <YearSlider />
         </div>
       </div>
-      <div class="row">
+      <div class="row p-4">
         <div class="col-md-5">
           <Scatterplot />
         </div>

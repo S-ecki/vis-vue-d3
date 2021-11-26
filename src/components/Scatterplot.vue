@@ -22,11 +22,11 @@ export default {
   data() {
     return {
       svgWidth: 500,
-      svgHeight: 500,
+      svgHeight: 600,
       svgPadding: {
         top: 20,
         right: 20,
-        bottom: 40,
+        bottom: 50,
         left: 70,
       },
     };
@@ -41,23 +41,8 @@ export default {
   methods: {
     drawVis() {
       if (this.$refs.chart) this.svgWidth = this.$refs.chart.clientWidth;
-      this.drawChart();
       this.transformSVGs();
-    },
-
-    transformSVGs() {
-      d3.select(this.$refs.chartGroup).attr(
-        "transform",
-        `translate(${this.svgPadding.left},${this.svgPadding.top})`
-      );
-      d3.select(this.$refs.scatterGroup).attr(
-        "transform",
-        `translate(${this.svgPadding.left},${this.svgPadding.top})`
-      );
-      d3.select(this.$refs.brushGroup).attr(
-        "transform",
-        `translate(${this.svgPadding.left},${this.svgPadding.top})`
-      );
+      this.drawChart();
     },
 
     drawChart() {
@@ -91,7 +76,6 @@ export default {
         .append("text")
         .attr("id", "scatterLabel")
         .attr("y", this.svgHeight - this.svgPadding.top - 10)
-        .attr("fill", "black")
         .attr("text-anchor", "start")
         .text("Educational Attainment: Bachelor's Degree or Higher (%)");
     },
@@ -113,7 +97,6 @@ export default {
         .attr("transform", "rotate(-90)")
         .attr("y", -this.svgPadding.left + 15)
         .attr("text-anchor", "end")
-        .attr("fill", "black")
         .text("Average Yearly Personal Income (in $)");
     },
 
@@ -143,9 +126,14 @@ export default {
         .data(this.getScatterData)
         .join("circle")
         .attr("class", "scatter")
-        .attr("stroke", "white")
         .attr("fill", (d) =>
-          this.selectedStates.includes(d.state) ? "red" : "black"
+          this.selectedStates.includes(d.state) ? "black" : "white"
+        )
+        .attr("stroke", (d) =>
+          this.selectedStates.includes(d.state) ? "white" : "black"
+        )
+        .attr("stroke-width", (d) =>
+          this.selectedStates.includes(d.state) ? "1.5" : "1"
         )
         .attr("cx", (d) => this.xScale(d.x))
         .attr("cy", (d) => this.yScale(d.y))
@@ -230,17 +218,8 @@ export default {
       return yColorIndex == -1 ? 0 : yColorIndex;
     },
 
-    // !
-
     onStartBrush(event) {
       const selection = event.selection;
-
-      // if (!selection) {
-      //   this.$store.commit("clearStateSelection");
-      //   return;
-      // }
-      // console.log(" x: s" + selection[0][0] + " e" + selection[1][0]);
-      // console.log(" y: s" + selection[1][1] + " e" + selection[0][1]);
 
       // gets the actual values of the corners of the brush
       const eduStart = this.xScale.invert(selection[0][0]);
@@ -248,13 +227,9 @@ export default {
       const incStart = this.yScale.invert(selection[1][1]);
       const incEnd = this.yScale.invert(selection[0][1]);
 
-      console.log("start " + eduStart, "end " + eduEnd);
-      console.log("start " + incStart, "end " + incEnd);
-
       const selectedStates = this.getScatterData()
+        // only take the datapoints that are "inside" the 4 corners of the brush
         .filter((datapoint) => {
-          console.log("dreckscheiß warum gehst du nicht");
-          console.log(datapoint);
           const edu = datapoint.x;
           const inc = datapoint.y;
 
@@ -262,14 +237,12 @@ export default {
             edu >= eduStart && edu <= eduEnd && inc >= incStart && inc <= incEnd
           );
         })
+        // extract the state names from the filtered datapoints and commit them as selection
         .map((datapoint) => datapoint.state);
       this.$store.commit("changeSelectedStates", selectedStates);
     },
 
-    // !
-
     addBrush() {
-      // Brush control
       const brush = d3
         .brush()
         .extent([
@@ -281,18 +254,27 @@ export default {
         ])
         .on("start brush", this.onStartBrush);
 
-      // d3.select("#brush").remove();
-
       d3.select(this.$refs.brushGroup)
-        .attr("id", "brush")
-        // .attr(
-        //   "transform",
-        //   `translate(${this.svgPadding.left}, ${this.svgPadding.top})`
-        // )
         .attr("class", "brush")
         .call(brush);
 
+      // raise the scatter points "over" the brush so you can see the tooltips
       d3.select("scatter-group").raise();
+    },
+
+    transformSVGs() {
+      d3.select(this.$refs.chartGroup).attr(
+        "transform",
+        `translate(${this.svgPadding.left},${this.svgPadding.top})`
+      );
+      d3.select(this.$refs.scatterGroup).attr(
+        "transform",
+        `translate(${this.svgPadding.left},${this.svgPadding.top})`
+      );
+      d3.select(this.$refs.brushGroup).attr(
+        "transform",
+        `translate(${this.svgPadding.left},${this.svgPadding.top})`
+      );
     },
   },
 
@@ -392,5 +374,9 @@ export default {
   font-size: 14px;
   opacity: 0;
   display: none;
+}
+#scatterLabel {
+  font-size: small;
+  fill: black;
 }
 </style>

@@ -1,6 +1,7 @@
 <template>
   <div class="vis-component" ref="vis">
     <svg class="main-svg" :width="svgWidth" :height="svgHeight">
+      <g class="bg" ref="bg"></g>
       <g class="choropleth-map" ref="map"></g>
     </svg>
   </div>
@@ -16,7 +17,7 @@ export default {
   data() {
     return {
       svgWidth: 500,
-      svgHeight: 500,
+      svgHeight: 600,
       svgPadding: {
         top: 20,
         right: 20,
@@ -32,17 +33,11 @@ export default {
   },
 
   methods: {
-    // TODO: put rect behind and add onClick to remove highlights
     drawVis() {
       if (this.$refs.vis) this.svgWidth = this.$refs.vis.clientWidth;
-
-      // TODO: unselect by clicking next to map
-      // d3.select(this.$refs.test).on("click", () => {
-      //   this.$store.commit("clearStateSelection");
-      // });
-
       this.transformSVG();
       this.drawMap();
+      this.addBackground();
     },
 
     transformSVG() {
@@ -62,12 +57,16 @@ export default {
         .data(mapStatesUSA.features)
         .join("path")
         .attr("d", path)
-        .attr("fill", (d) =>
-          this.selectedStates.includes(d.properties.name)
-            ? colorMap.get(d.properties.name)
-            : "white"
-        )
         .attr("stroke", "black")
+        .attr("stroke-width", "0.5")
+        .attr("fill", (d) => {
+          if (!this.selectedStates.length) {
+            return colorMap.get(d.properties.name);
+          }
+          return this.selectedStates.includes(d.properties.name)
+            ? colorMap.get(d.properties.name)
+            : "white";
+        })
         .on("click", (_, d) => {
           this.$store.commit("changeStateSelection", d.properties.name);
         })
@@ -88,7 +87,20 @@ export default {
       );
     },
 
+    addBackground() {
+      // add transparent rect "behind" map with onClick handler unselecting everything
+      d3.select(this.$refs.bg)
+        .append("rect")
+        .attr("width", this.svgWidth)
+        .attr("height", this.svgHeight)
+        .attr("style", `fill:transparent;`)
+        .on("click", () => {
+          this.$store.commit("clearStateSelection");
+        });
+    },
+
     initTooltip() {
+      d3.select("#mapTooltip").remove();
       // the idea of how to use tooltips was inspired by this website, but heavily changed to my own needs
       // https://bl.ocks.org/d3noob/a22c42db65eb00d4e369
       d3.select("body")
