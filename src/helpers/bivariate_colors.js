@@ -1,10 +1,10 @@
-// the color scheme has been taken from https://observablehq.com/@d3/bivariate-choropleth
+// the color scheme has been created by myself with the help of this website:
+// https://observablehq.com/@benjaminadk/bivariate-choropleth-color-generator
 const bivariate_colors =
     [
-        ["#5ac8c8", "#ace4e4", "#e8e8e8"],
-        ["#5698b9", "#a5add3", "#dfb0d6"],
-        ["#3b4994", "#8c62aa", "#be64ac"],
+        ["#0075ac", "#70a7c1", "#d3d3d3"],
+        ["#004e8d", "#746f9e", "#da8cad"],
+        ["#00004f", "#7b0058", "#e80060"],
     ]
-
 
 export default bivariate_colors
