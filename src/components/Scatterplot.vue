@@ -6,7 +6,7 @@
         <g class="axis axis-x" ref="axisX"></g>
         <g class="axis axis-y" ref="axisY"></g>
       </g>
-      <g class="brush" ref="brush"></g>
+      <g class="brush-group" ref="brushGroup"></g>
       <g class="scatter-group" ref="scatterGroup"></g>
     </svg>
   </div>
@@ -54,7 +54,7 @@ export default {
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
       );
-      d3.select(this.$refs.brush).attr(
+      d3.select(this.$refs.brushGroup).attr(
         "transform",
         `translate(${this.svgPadding.left},${this.svgPadding.top})`
       );
@@ -253,7 +253,8 @@ export default {
 
       const selectedStates = this.getScatterData()
         .filter((datapoint) => {
-          // console.log(datapoint);
+          console.log("dreckscheiß warum gehst du nicht");
+          console.log(datapoint);
           const edu = datapoint.x;
           const inc = datapoint.y;
 
@@ -280,10 +281,9 @@ export default {
         ])
         .on("start brush", this.onStartBrush);
 
-      d3.select("#brush").remove();
+      // d3.select("#brush").remove();
 
-      d3.select(this.$refs.brush)
-        .append("g")
+      d3.select(this.$refs.brushGroup)
         .attr("id", "brush")
         // .attr(
         //   "transform",
@@ -293,7 +293,6 @@ export default {
         .call(brush);
 
       d3.select("scatter-group").raise();
-      // TODO: take rect group out of scatter group
     },
   },
 
