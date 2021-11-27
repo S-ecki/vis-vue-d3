@@ -22,3 +22,6 @@ Data is provided for a year range of 2006 until 2019. The user can select a year
 - Using different techniques to show data in a user-friendly way
 - Interactivity on visualizations
 - In-depth usage of d3js <sup>and what a bitch it can be sometimes ;)</sup>
+
+## Screenshot
+![image](https://user-images.githubusercontent.com/75510543/143661862-b727adc6-12d2-4c43-a3b7-3f1390bf40d4.png)
